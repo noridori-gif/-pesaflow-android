@@ -1,0 +1,53 @@
+name: Android APK
+
+# Inajenga APK ya PesaFlow SMS kwenye cloud kila code ya Android inapobadilika,
+# na kuiweka kwenye GitHub Release "android-latest" ili ipakuliwe moja kwa moja kwenye simu.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Jenga APK
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Badili jina la APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk PesaFlow-SMS.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PesaFlow-SMS
+          path: PesaFlow-SMS.apk
+
+      - name: Weka kwenye Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete android-latest --yes --cleanup-tag || true
+          gh release create android-latest PesaFlow-SMS.apk \
+            --title "PesaFlow SMS (Android) — toleo la karibuni" \
+            --notes "Imejengwa kutoka commit ${GITHUB_SHA::7}. Pakua PesaFlow-SMS.apk kwenye simu ya Android na uisakinishe." \
+            --target "$GITHUB_SHA"
+

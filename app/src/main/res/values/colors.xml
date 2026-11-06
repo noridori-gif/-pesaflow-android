@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#0A6E55</color>
+    <color name="bg">#F3F6F4</color>
+    <color name="ink">#0F1C18</color>
+    <color name="ink2">#4C5D57</color>
+    <color name="ok_soft">#D6ECE4</color>
+    <color name="warn_soft">#FBECCC</color>
+    <color name="crit">#C2362F</color>
+</resources>
