@@ -2,9 +2,9 @@ name: Android APK
 
 # Inajenga APK ya PesaFlow SMS kwenye cloud kila code ya Android inapobadilika,
 # na kuiweka kwenye GitHub Release "android-latest" ili ipakuliwe moja kwa moja kwenye simu.
+# Kwa sasa inaanzishwa kwa mkono tu (Actions tab -> Run workflow), kwa sababu
+# Codemagic ndiyo inajenga APK hadi tatizo la billing la GitHub litatuliwe.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

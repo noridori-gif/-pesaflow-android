@@ -1,0 +1,25 @@
+# Codemagic: inajenga APK ya PesaFlow SMS kwenye cloud.
+# Mashine ya macOS M2 ndiyo yenye dakika 500 za bure kwa mwezi kwa account binafsi.
+workflows:
+  android-apk:
+    name: PesaFlow SMS (APK)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Weka anwani ya Android SDK
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Jenga APK
+        script: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :app:assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/PesaFlow-SMS.apk
+    artifacts:
+      - app/build/outputs/apk/debug/PesaFlow-SMS.apk
