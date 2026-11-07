@@ -16,12 +16,10 @@ object Senders {
         Regex("crdb|nmb|nbc|stanbic|absa|equity|exim|dtb|azania|kcb|tpb|amana|akiba|bank|benki", RegexOption.IGNORE_CASE),
     )
 
-    // Maneno yanayoonyesha muamala (kuchuja matangazo kutoka kwa sender wa fedha)
-    private val TX_WORDS = Regex(
-        "umepokea|umetuma|imetumwa|umelipa|umetoa|imethibitishwa|confirmed|received|credited|debited|paid|withdraw|salio|balance",
-        RegexOption.IGNORE_CASE,
-    )
-    private val AMOUNT = Regex("(tshs?|tzs)\\.?\\s*[0-9]", RegexOption.IGNORE_CASE)
+    // SMS ya mtumaji wa fedha inatumwa kama ina kiasi cha pesa (TZS/TSh 1,000), au risiti ya LUKU ("TOTAL 20,000", "56.1KWH").
+    // Server ndiyo inaamua kama ni muamala; matangazo yanapuuzwa huko. Hivyo hatukosi miundo mipya ya benki
+    // kama "Muamala umefanikiwa" (CRDB) au "kimewekwa kwenye akaunti" (NMB).
+    private val AMOUNT = Regex("(tshs?|tzs)\\.?\\s*[0-9]|\\btotal\\s*:?\\s*(tzs|tshs?)?\\s*[0-9]|[0-9]\\s*kwh", RegexOption.IGNORE_CASE)
 
     fun isFinancial(context: Context, sender: String?): Boolean {
         if (sender.isNullOrBlank()) return false
@@ -33,5 +31,5 @@ object Senders {
         return Prefs.extraSenders(context).any { sender.contains(it, ignoreCase = true) }
     }
 
-    fun looksLikeTransaction(body: String): Boolean = AMOUNT.containsMatchIn(body) && TX_WORDS.containsMatchIn(body)
+    fun looksLikeTransaction(body: String): Boolean = AMOUNT.containsMatchIn(body)
 }
