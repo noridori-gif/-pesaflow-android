@@ -6,8 +6,13 @@ import java.util.UUID
 
 /** Inasoma SMS za fedha zilizopo tayari kwenye simu (siku N zilizopita) na kuziweka kwenye foleni. */
 object HistoryImporter {
+    /** days = 1 inamaanisha "leo" (kuanzia saa 6 usiku); days = 7 ni leo pamoja na siku 6 zilizopita, n.k. */
     fun import(c: Context, days: Int = 90): Int {
-        val since = System.currentTimeMillis() - days * 86_400_000L
+        val since = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+            add(java.util.Calendar.DAY_OF_YEAR, -(days - 1))
+        }.timeInMillis
         val items = mutableListOf<PendingSms>()
         c.contentResolver.query(
             Telephony.Sms.Inbox.CONTENT_URI,

@@ -127,7 +127,7 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Leta SMS za siku 90 zilizopita" />
+                android:text="@string/history_btn" />
 
             <Button
                 android:id="@+id/openWebBtn"

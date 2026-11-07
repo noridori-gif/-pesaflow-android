@@ -7,6 +7,8 @@ workflows:
     max_build_duration: 30
     environment:
       java: 17
+      groups:
+        - pesaflow_signing   # PF_KEYSTORE_B64, PF_KEYSTORE_PASSWORD (siri, ziko Codemagic tu)
     triggering:
       events:
         - push
@@ -16,6 +18,15 @@ workflows:
     scripts:
       - name: Weka anwani ya Android SDK
         script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Andaa ufunguo wa kutia sahihi
+        script: |
+          if [ -n "$PF_KEYSTORE_B64" ]; then
+            echo "$PF_KEYSTORE_B64" | base64 --decode > "$CM_BUILD_DIR/pesaflow.jks"
+            echo "PF_KEYSTORE_PATH=$CM_BUILD_DIR/pesaflow.jks" >> "$CM_ENV"
+            echo "Ufunguo wa kudumu umewekwa."
+          else
+            echo "ONYO: PF_KEYSTORE_B64 haipo; APK itatiwa sahihi kwa ufunguo wa muda."
+          fi
       - name: Jenga APK
         script: |
           chmod +x ./gradlew

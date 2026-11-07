@@ -11,11 +11,29 @@ android {
         applicationId = "tz.pesaflow.sms"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        // Codemagic inatoa BUILD_NUMBER; kila build mpya ina namba kubwa zaidi ili isakinishwe juu ya ya zamani
+        versionCode = 1 + (System.getenv("BUILD_NUMBER")?.toIntOrNull() ?: 0)
+        versionName = "1.1.${System.getenv("BUILD_NUMBER") ?: "0"}"
+    }
+
+    // Ufunguo wa kudumu wa kutia sahihi: unatoka kwenye siri za Codemagic (PF_KEYSTORE_PATH).
+    // Bila ufunguo huu, kila build ingetiwa sahihi tofauti na simu ingekataa kusasisha app.
+    val keystorePath = System.getenv("PF_KEYSTORE_PATH")
+    signingConfigs {
+        if (keystorePath != null && file(keystorePath).exists()) {
+            create("pesaflow") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("PF_KEYSTORE_PASSWORD")
+                keyAlias = "pesaflow"
+                keyPassword = System.getenv("PF_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfigs.findByName("pesaflow")?.let { signingConfig = it }
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

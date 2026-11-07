@@ -7,7 +7,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -48,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             refresh()
         }
         b.permBtn.setOnClickListener { askPermissions() }
-        b.historyBtn.setOnClickListener { importHistory() }
+        b.historyBtn.setOnClickListener { chooseHistoryRange() }
         b.syncBtn.setOnClickListener { UploadWorker.enqueueNow(this); toast("Inatuma…") }
         b.openWebBtn.setOnClickListener {
             Prefs.serverUrl(this)?.let { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$it/dashboard"))) }
@@ -80,13 +82,51 @@ class MainActivity : AppCompatActivity() {
         permLauncher.launch(list.toTypedArray())
     }
 
-    private fun importHistory() {
+    /** Chaguo za muda wa historia: (lebo, idadi ya siku). Siku 1 = kuanzia saa 6 usiku wa leo. */
+    private val historyOptions = listOf(
+        "Leo tu" to 1, "Siku 3" to 3, "Wiki 1" to 7, "Wiki 2" to 14,
+        "Mwezi 1" to 30, "Miezi 3" to 90, "Miezi 6" to 180, "Mwaka 1" to 365,
+    )
+
+    private fun chooseHistoryRange() {
         if (!has(Manifest.permission.READ_SMS)) { askPermissions(); return }
+        val labels = (historyOptions.map { it.first } + "Andika idadi ya siku…").toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Leta SMS za muda gani?")
+            .setItems(labels) { _, which ->
+                if (which < historyOptions.size) importHistory(historyOptions[which].second, historyOptions[which].first)
+                else askCustomDays()
+            }
+            .setNegativeButton("Ghairi", null)
+            .show()
+    }
+
+    private fun askCustomDays() {
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            hint = "mf. 45"
+            setPadding(48, 32, 48, 32)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Idadi ya siku (1–730)")
+            .setView(input)
+            .setPositiveButton("Leta") { _, _ ->
+                val d = input.text.toString().toIntOrNull()
+                if (d == null || d < 1 || d > 730) toast("Weka namba kati ya 1 na 730")
+                else importHistory(d, "siku $d")
+            }
+            .setNegativeButton("Ghairi", null)
+            .show()
+    }
+
+    private fun importHistory(days: Int, label: String) {
         b.historyBtn.isEnabled = false
+        b.historyBtn.text = "Inasoma SMS…"
         lifecycleScope.launch {
-            val n = withContext(Dispatchers.IO) { HistoryImporter.import(this@MainActivity, 90) }
+            val n = withContext(Dispatchers.IO) { HistoryImporter.import(this@MainActivity, days) }
             b.historyBtn.isEnabled = true
-            toast(if (n == 0) "Hakuna SMS za fedha za siku 90 zilizopatikana" else "SMS $n zimewekwa kwenye foleni")
+            b.historyBtn.text = getString(R.string.history_btn)
+            toast(if (n == 0) "Hakuna SMS za fedha ($label)" else "SMS $n ($label) zimewekwa kwenye foleni na zinatumwa")
             if (n > 0) UploadWorker.enqueueNow(this@MainActivity)
             refresh()
         }
