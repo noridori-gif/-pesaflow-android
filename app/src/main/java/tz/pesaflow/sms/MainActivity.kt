@@ -12,9 +12,11 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.content.res.ColorStateList
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             toast("Imehifadhiwa")
         }
         b.unpairBtn.setOnClickListener {
-            AlertDialog.Builder(this)
+            MaterialAlertDialogBuilder(this)
                 .setMessage("Ondoa muunganisho wa simu hii na PesaFlow?")
                 .setPositiveButton("Ondoa") { _, _ -> Prefs.unpair(this); refresh() }
                 .setNegativeButton("Hapana", null)
@@ -91,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     private fun chooseHistoryRange() {
         if (!has(Manifest.permission.READ_SMS)) { askPermissions(); return }
         val labels = (historyOptions.map { it.first } + "Andika idadi ya siku…").toTypedArray()
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Leta SMS za muda gani?")
             .setItems(labels) { _, which ->
                 if (which < historyOptions.size) importHistory(historyOptions[which].second, historyOptions[which].first)
@@ -107,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             hint = "mf. 45"
             setPadding(48, 32, 48, 32)
         }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Idadi ya siku (1–730)")
             .setView(input)
             .setPositiveButton("Leta") { _, _ ->
@@ -137,25 +139,33 @@ class MainActivity : AppCompatActivity() {
         val smsOk = has(Manifest.permission.RECEIVE_SMS)
         b.pairSection.visibility = if (paired) View.GONE else View.VISIBLE
         b.pairedSection.visibility = if (paired) View.VISIBLE else View.GONE
+        b.permCard.visibility = if (smsOk) View.GONE else View.VISIBLE
 
-        val pending = Prefs.queue(this).size
-        val last = Prefs.lastSync(this)
         val err = Prefs.authError(this)
+        val ok = paired && smsOk && err == null
         b.status.text = when {
-            !paired -> "Haijaunganishwa. Tengeneza pairing code kwenye web: Mipangilio → Simu za Android."
+            !paired -> "Bado haijaunganishwa na PesaFlow"
             err != null -> err
-            !smsOk -> "Imeunganishwa, lakini ruhusa ya kusoma SMS haijatolewa."
-            else -> "Inafanya kazi. Miamala mipya ya M-Pesa, Mixx, Airtel, HaloPesa, Selcom na benki inaingia yenyewe."
+            !smsOk -> "Imeunganishwa, lakini inahitaji ruhusa ya SMS"
+            else -> "Inafanya kazi · miamala inaingia yenyewe"
         }
-        b.status.setBackgroundResource(if (paired && smsOk && err == null) R.drawable.bg_ok else R.drawable.bg_warn)
-        b.server.text = Prefs.serverUrl(this) ?: ""
-        b.stats.text = buildString {
-            append("Zinasubiri kutumwa: $pending\n")
-            append("Zimetumwa jumla: ${Prefs.totalSent(this@MainActivity)}\n")
-            append("Mara ya mwisho: ")
-            append(if (last == 0L) "bado" else DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(last)))
+        b.status.setBackgroundResource(if (ok) R.drawable.bg_ok else R.drawable.bg_warn)
+        val fg = if (ok) 0xFFFFFFFF.toInt() else 0xFF5C3A00.toInt()
+        val dot = if (ok) 0xFF7CF0C4.toInt() else 0xFFA86A00.toInt()
+        b.status.setTextColor(fg)
+        TextViewCompat.setCompoundDrawableTintList(b.status, ColorStateList.valueOf(dot))
+
+        b.server.text = Prefs.serverUrl(this)?.removePrefix("https://") ?: ""
+        b.server.visibility = if (paired) View.VISIBLE else View.GONE
+
+        val last = Prefs.lastSync(this)
+        b.statPending.text = Prefs.queue(this).size.toString()
+        b.statSent.text = Prefs.totalSent(this).toString()
+        b.statLast.text = when {
+            last == 0L -> "—"
+            System.currentTimeMillis() - last < 86_400_000L -> DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(last))
+            else -> DateFormat.getDateInstance(DateFormat.SHORT).format(Date(last))
         }
-        b.permBtn.visibility = if (smsOk) View.GONE else View.VISIBLE
     }
 
     private fun toast(s: String) = Toast.makeText(this, s, Toast.LENGTH_LONG).show()

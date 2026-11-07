@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="accent">#0A6E55</color>
-    <color name="bg">#F3F6F4</color>
-    <color name="ink">#0F1C18</color>
-    <color name="ink2">#4C5D57</color>
-    <color name="ok_soft">#D6ECE4</color>
-    <color name="warn_soft">#FBECCC</color>
-    <color name="crit">#C2362F</color>
+    <!-- PesaFlow: rangi zilezile za web (zumaridi) -->
+    <color name="accent">#08664D</color>
+    <color name="accent_strong">#054F3B</color>
+    <color name="accent_soft">#D3EBE2</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="hero_from">#0A7A5C</color>
+    <color name="hero_to">#064D3B</color>
+    <color name="bg">#F2F5F3</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface2">#E9EFEC</color>
+    <color name="line">#DCE4E0</color>
+    <color name="ink">#0D1915</color>
+    <color name="ink2">#45574F</color>
+    <color name="ink3">#6F807A</color>
+    <color name="good">#13824B</color>
+    <color name="warn">#A86A00</color>
+    <color name="warn_soft">#FCEECE</color>
+    <color name="crit">#C8372D</color>
+    <color name="crit_soft">#FBE1DE</color>
+    <color name="white_15">#26FFFFFF</color>
+    <color name="white_80">#CCFFFFFF</color>
 </resources>
